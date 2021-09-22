@@ -19,16 +19,16 @@ class DatabaseHandlerClass():
         df = pd.read_sql_query("SELECT sentimental_score from Reflect_sentiment", con)   
         return df
 
-    def get_row(self):
-        #c=self.connection.cursor()
-        sql="SELECT * FROM Reflect_sentiment"
-        response=self._query(sql)
-        print(response)
+    # def get_row(self):
+    #     #c=self.connection.cursor()
+    #     sql="SELECT * FROM Reflect_sentiment"
+    #     response=self._query(sql)
+    #     print(response)
         
-    def get_all(self):
-        sql="SELECT * FROM Reflect_sentiment"
-        response=self._query(sql)
-        print(response)
+    # def get_all(self):
+    #     sql="SELECT * FROM Reflect_sentiment"
+    #     response=self._query(sql)
+    #     print(response)
 
     def get_all_phrases(self):
         sql="SELECT user_input FROM Reflect_sentiment"
@@ -41,8 +41,8 @@ class DatabaseHandlerClass():
         response=self._query(sql)
         return True
 
-    def isRunning(self)-> bool:
-        return True
+    # def isRunning(self)-> bool:
+    #     return True
 
     def drop_table(self):
         sql="DROP TABLE IF EXISTS Reflect_sentiment"
@@ -52,13 +52,13 @@ class DatabaseHandlerClass():
         sql="CREATE TABLE IF NOT EXISTS Reflect_sentiment(user_input  text,sentimental_label text,sentimental_score   REAL)"
         response=self._query(sql)
 
-    def _check_if_db_exists(self):
-        try:
-            print(f'Checking if {self.db_name} exists or not...')
-            self.connection = sqlite3.connect(self.db_name, uri=True)
-            print(f'Database exists. Succesfully connected to {self.db_name}')
-        except sqlite3.OperationalError as err:
-            print('Database does not exist')
-            print(err)
+    # def _check_if_db_exists(self):
+    #     try:
+    #         print(f'Checking if {self.db_name} exists or not...')
+    #         self.connection = sqlite3.connect(self.db_name, uri=True)
+    #         print(f'Database exists. Succesfully connected to {self.db_name}')
+    #     except sqlite3.OperationalError as err:
+    #         print('Database does not exist')
+    #         print(err)
     
     
