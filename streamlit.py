@@ -15,6 +15,7 @@ def sentiment_analysis(response):
     return sentiment_label, score
 
 
+
 def start_model(response):
     with st.spinner('Loading model...'):
         time.sleep(1)
@@ -24,7 +25,7 @@ def start_model(response):
     #'question_answering', 'text_generator', 'sentiment_analysis', 'image_classifier'
     pass
 
-def sql_input(text_input, sentiment_output, score_output, validation):
+def sql_input(text_input, sentiment_output, score_output, validation): #göra modellen öppen för alla modellerna och inte enbart sentiment_analysis
     db = sqlite3.connect('databas.db')
     cur = db.cursor()
     now = datetime.now()
@@ -32,7 +33,7 @@ def sql_input(text_input, sentiment_output, score_output, validation):
     cur.execute(" INSERT INTO sentiment_analysis VALUES (?,?,?,?,?)",data)
     db.commit()
 
-def sql_output():
+def sql_output(): #behöver fixa en Try Catch om databas.db inte finns. Göra den öppen för alla modellerna och inte enbart sentiment_analysis
     conn = sqlite3.connect("databas.db")
     df = pd.read_sql_query("SELECT * FROM sentiment_analysis", conn)
     st.dataframe(df)
@@ -46,22 +47,29 @@ response = ""
 
 st.sidebar.header("Analyzing app")
 st.text("")
-#välja olika saker
+
+check_if_loaded = {"question_answering":0,"text_generator":0,"sentiment_analysis":0,"image_classifier":0} #dict över modellerna och värde på vilken modell som är laddad eller inte
+
 model_choice = st.sidebar.selectbox("Choose your model",
                             [option_a, option_b, option_c, option_d])
 if st.sidebar.button('Press to load model'):
     start_model(model_choice)
+    for key, value in check_if_loaded.items(): # tömmer värdet på dict så att alla är 0
+        value = 0 
+    check_if_loaded[model_choice] = 1 #lägger till värdet 1 i den dict som är laddad
+    
+
 st.text("")
 st.markdown(f"### {model_choice.replace('_',' ').capitalize()}")
 
 
 
-if model_choice == option_a:
+if check_if_loaded[model_choice] == 1: #kollar om modellens värde är 1 i dict check_if_loaded annars skall inget skrivas ut
+    context_input = st.text_input("Write a sentence."," ")
+    question_inpu = st.text_input("Write a question."," ")
+elif check_if_loaded[model_choice] == 1:#kollar om modellens värde är 1 i dict check_if_loaded annars skall inget skrivas ut
     pass
-elif model_choice == option_b:
-    pass
-elif model_choice==option_c:
-    
+elif check_if_loaded[model_choice]==1:#kollar om modellens värde är 1 i dict check_if_loaded annars skall inget skrivas ut
     text_input = st.text_input("Write a sentence."," ")
     sentiment_output, score_output = sentiment_analysis(text_input)
     if sentiment_output.capitalize() == "Positive":
@@ -78,7 +86,7 @@ elif model_choice==option_c:
     if st.button('Press to show data'):
         sql_output()
     
-elif model_choice==option_d:
+elif check_if_loaded[model_choice]==1:#kollar om modellens värde är 1 i dict check_if_loaded annars skall inget skrivas ut
     pass
 else:
     pass
