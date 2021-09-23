@@ -76,6 +76,22 @@ def sql_output():
     df = pd.read_sql_query("SELECT * FROM sentiment_analysis", db)
     st.dataframe(df)
 
+def sql_input_qa(context_input, question_input, answer_output, score_output):
+    db = sqlite3.connect('databas.db')
+    cur = db.cursor()
+    now = datetime.now()
+    data = (now,context_input, question_input, answer_output, score_output )
+    cur.execute(" Create TABLE IF NOT EXISTS question_answer (input_time, context text, question text, answer text, score interger)")
+    cur.execute(" INSERT INTO question_answer VALUES (?,?,?,?,?)",data)
+    db.commit()
+
+def sql_output_qa():
+    db = sqlite3.connect("databas.db")
+    cur = db.cursor()
+    cur.execute(" Create TABLE IF NOT EXISTS question_answer (input_time, context text, question text, answer text, score interger)")   
+    df = pd.read_sql_query("SELECT * FROM question_answer", db)
+    st.dataframe(df)       
+
 def labels_changer():
     st.sidebar.write("")
     st.sidebar.write("")
@@ -120,7 +136,19 @@ st.markdown(f"### {model_choice.replace('_',' ').capitalize()}")
 
 
 if model_choice=="question_answering":
-
+    context_input = st.text_input("Write something here."," ")
+    question_input = st.text_input("Write a question."," ")
+    if st.button("Press when done."):
+        answer_output, score_output =question_answering(context_input, question_input)
+        st.success(f"Answer to your question is : {answer_output} with a surety of {score_output:.4f} ")
+        st.text("")
+        if st.button('Press to save data'):
+            sql_input_qa(context_input, question_input, answer_output, score_output)
+        st.text("")
+        st.text("")
+        if st.button('Press to show data'):
+            sql_output_qa()
+            
 elif model_choice=="sentiment_analysis":
     text_input = st.text_input("Write a sentence.","")
     sentiment_output, score_output = sentiment_analysis(text_input)
