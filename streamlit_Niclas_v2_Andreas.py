@@ -120,11 +120,6 @@ st.markdown(f"### {model_choice.replace('_',' ').capitalize()}")
 
 
 if model_choice=="question_answering":
-    #context_input = st.text_input("Write a sentence."," ")
-    #question_input = st.text_input("Write a question."," ")
-    data = {"context":"My name is alex and im not really fifteen hundred years old but rather five. I drive a scuba diver dog named patty to work every day. it's fast as hell let me tell you! and i lied about my age i am actually thirty","question":"tell me my age?"}
-    p = requests.post(url="http://127.0.0.1:8000/question_answering/",json=data)
-    st.write(p.json())
 
 elif model_choice=="sentiment_analysis":
     text_input = st.text_input("Write a sentence.","")
