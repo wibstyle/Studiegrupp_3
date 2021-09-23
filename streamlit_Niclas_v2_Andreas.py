@@ -69,14 +69,33 @@ def sql_input(text_input, sentiment_output, score_output, validation): #göra mo
     cur.execute(" INSERT INTO sentiment_analysis VALUES (?,?,?,?,?)",data)
     db.commit()
 
-
 def sql_output(): 
     db = sqlite3.connect("databas.db")
     cur = db.cursor()
     cur.execute(" Create TABLE IF NOT EXISTS sentiment_analysis(input_time, input text, sentiment_respons text, score interger, validation text)")    
     df = pd.read_sql_query("SELECT * FROM sentiment_analysis", db)
     st.dataframe(df)
+
+def labels_changer():
+    st.sidebar.write("")
+    st.sidebar.write("")
+    st.sidebar.write("Here you can change the labels for the image classifier.default is cat,dog and banana")
+    st.sidebar.write("Default value is: _cat,dog and banana_")
+    labels = st.sidebar.columns(3)
     
+    first_label = labels[0].text_input("1st label",value="cat",key=1)
+    second_label = labels[1].text_input("2nd label",value="dog",key=2)
+    third_label = labels[2].text_input("3rd label",value="banana",key=3)
+
+    change_labels = {"class_1": first_label,
+        "class_2": second_label,
+        "class_3": third_label}
+    
+    if st.sidebar.button("Press here to change labels"):
+        send_labels = requests.put(url="http://127.0.0.1:8000/change_classes/",json=change_labels)
+        st.write(send_labels.status_code)
+
+
 #---------------
 if "model_running" not in st.session_state:
         st.session_state['model_running']="not_activated"
@@ -126,23 +145,41 @@ elif model_choice=="sentiment_analysis":
         sql_output()
     pass
 elif model_choice=="image_classifier":
+    st.write("This model takes your input image and compare it to three labels and gives a score how much the model think your image looks like the label")
+    st.write("_You can use the default labels or choose three of your own in the meny._")
+    
+    change_labels = labels_changer()
+    
     file_upload = st.file_uploader("Upload a file", type=["jpeg","jpg","png"])
     
     if file_upload is not None:
         img = Image.open(file_upload)
-        st.image(img) #show the users picture
+        
         files = {'file': file_upload.getvalue()} #the picture as binary
-        result = image_classifier(files)
-        img_name = file_upload    
-        for k, v in result.items():
-            result[k] = float(v)
-        for key,value in result.items():
-            st.write(f"Label: {key} = {value:.6f}")
-            print(type(value))
-        if st.button('Press to save data'):
-            send_to_sql = sql_image_input(img_name,result)
-        if st.button('Press to show data'):
-            sql_img_output()    
+        x = 0
+        while True:
+            try:
+                result = image_classifier(files)
+                st.image(img) #show the users picture
+                x=1
+                break
+            except:
+                st.error("The model could work with this image please upload a new one!")
+                x=0
+                break
+        if x == 1:
+            result = image_classifier(files)
+            img_name = file_upload    
+            for k, v in result.items():
+                result[k] = float(v)
+            for key,value in result.items():
+                st.write(f"Label: {key} = {value:.6f}")
+            if st.button('Press to save data'):
+                send_to_sql = sql_image_input(img_name,result)
+            if st.button('Press to show data'):
+                sql_img_output()
+        elif x==0:
+            pass
 else:
     pass
 
