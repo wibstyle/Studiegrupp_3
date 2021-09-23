@@ -15,8 +15,12 @@ def sentiment_analysis(response):
     score = p.json()["score"]
     return sentiment_label, score
 
-def question_answering(respone):
-    pass
+def question_answering(response1, response2):
+    p= requests.post(url= "http://127.0.0.1:8000/qa/",json= {"context" : response1, "question" : response2})
+    answer= p.json()["answer"]
+    score= p.json()["score"]
+    return answer, score
+    
 def text_generator(respons):
     pass
 def image_classifier(files):
@@ -138,7 +142,7 @@ st.markdown(f"### {model_choice.replace('_',' ').capitalize()}")
 if model_choice=="question_answering":
     context_input = st.text_input("Write something here."," ")
     question_input = st.text_input("Write a question."," ")
-    if st.button("Press when done."):
+    if st.button("Press when done"):
         answer_output, score_output =question_answering(context_input, question_input)
         st.success(f"Answer to your question is : {answer_output} with a surety of {score_output:.4f} ")
         st.text("")
