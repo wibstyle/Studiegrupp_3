@@ -140,18 +140,19 @@ st.markdown(f"### {model_choice.replace('_',' ').capitalize()}")
 
 
 if model_choice=="question_answering":
-    context_input = st.text_input("Write something here."," ")
-    question_input = st.text_input("Write a question."," ")
-    if st.button("Press when done"):
-        answer_output, score_output =question_answering(context_input, question_input)
-        st.success(f"Answer to your question is : {answer_output} with a surety of {score_output:.4f} ")
-        st.text("")
-        if st.button('Press to save data'):
-            sql_input_qa(context_input, question_input, answer_output, score_output)
-        st.text("")
-        st.text("")
-        if st.button('Press to show data'):
-            sql_output_qa()
+    form = st.form(key ="my_form")
+    context_input = form.text_input("Write something here."," ")
+    question_input = form.text_input("Write a question."," ")
+    submit_button=form.form_submit_button(label ="Press when done")
+    answer_output, score_output =question_answering(context_input, question_input)
+    st.success(f"Answer to your question is : {answer_output} with a surety of {score_output:.4f} ")
+    st.text("")
+    if st.button('Press to save data'):
+        sql_input_qa(context_input, question_input, answer_output, score_output)
+    st.text("")
+    if st.button('Press to show data'):
+        sql_output_qa()
+
             
 elif model_choice=="sentiment_analysis":
     text_input = st.text_input("Write a sentence.","")
