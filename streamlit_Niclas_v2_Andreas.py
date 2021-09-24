@@ -50,7 +50,6 @@ def sql_image_input(img_name,result):
     data = (now, file_name, dict_keys[0], dict_values[0],dict_keys[1], dict_values[1],dict_keys[2], dict_values[2])
     db = sqlite3.connect('databas.db')
     cur = db.cursor()
-    #list_of_columns = ["img_name", "label_ 1", "score_1", "label_ 2", "score_2", "label_ 3", "score_3", "input_time"]
     cur.execute(""" Create TABLE IF NOT EXISTS image_classifier
                 (input_time integer,image_name text, label_1 text, score_1 real, label_2 text, score_2 real, label_3 text, score_3 real)""")
     cur.execute(" INSERT INTO image_classifier VALUES (?,?,?,?,?,?,?,?)",data)
@@ -110,11 +109,13 @@ def labels_changer():
     change_labels = {"class_1": first_label,
         "class_2": second_label,
         "class_3": third_label}
-    
-    if st.sidebar.button("Press here to change labels"):
-        send_labels = requests.put(url="http://127.0.0.1:8000/change_classes/",json=change_labels)
-        st.write(send_labels.status_code)
 
+    flag = len(change_labels) != len(set(change_labels.values()))
+     
+    if flag == False and change_labels["class_1"] != "" and change_labels["class_2"] != "" and change_labels["class_3"] != "": 
+        requests.put(url="http://127.0.0.1:8000/change_classes/",json=change_labels)
+    else:
+        st.sidebar.error("All labels must have a unique value")
 
 #---------------
 if "model_running" not in st.session_state:
@@ -175,26 +176,22 @@ elif model_choice=="sentiment_analysis":
 elif model_choice=="image_classifier":
     st.write("This model takes your input image and compare it to three labels and gives a score how much the model think your image looks like the label")
     st.write("_You can use the default labels or choose three of your own in the meny._")
+ 
+    file_upload = st.file_uploader("Upload a file", type=["jpeg","jpg","png"])
     
     change_labels = labels_changer()
     
-    file_upload = st.file_uploader("Upload a file", type=["jpeg","jpg","png"])
-    
     if file_upload is not None:
         img = Image.open(file_upload)
-        
         files = {'file': file_upload.getvalue()} #the picture as binary
         x = 0
-        while True:
-            try:
-                result = image_classifier(files)
-                st.image(img) #show the users picture
-                x=1
-                break
-            except:
-                st.error("The model could work with this image please upload a new one!")
-                x=0
-                break
+        try:
+            result = image_classifier(files)
+            st.image(img) #show the users picture
+            x=1
+        except:
+            st.error("The model could not analyse your image please try with another one!")
+            x=0 
         if x == 1:
             result = image_classifier(files)
             img_name = file_upload    
