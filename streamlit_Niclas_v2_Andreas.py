@@ -73,15 +73,16 @@ def main():
                 
     elif model_choice =="text_generator":
 
-        context_input = st.text_input("Write something to start with....","")
-        if st.button("Tryck"):
-            answer_output = text_generator(context_input)
-            st.success(f"Genartated text is: {answer_output} ")
-        if st.button("Save data"):
-            sql_input_text_generated(context_input, answer_output,)
-        st.text("")
-        if st.button('Press to show data'):
-            sql_output_text_generated()
+        st.write("This model is not developed in this project.")
+        # context_input = st.text_input("Write something to start with....","")
+        # if st.button("Tryck"):
+        #     answer_output = text_generator(context_input)
+        #     st.success(f"Genartated text is: {answer_output} ")
+        # if st.button("Save data"):
+        #     sql_input_text_generated(context_input, answer_output,)
+        # st.text("")
+        # if st.button('Press to show data'):
+        #     sql_output_text_generated()
 
     elif model_choice=="sentiment_analysis":
         text_input = st.text_input("Write a sentence.","")
@@ -112,11 +113,11 @@ def main():
         
         if file_upload is not None:
             img = Image.open(file_upload)
-            files = {'file': file_upload.getvalue()} #the picture as binary
+            files = {'file': file_upload.getvalue()}    #the picture as binary
             x = 0
             try:
                 result = image_classifier(files)
-                st.image(img) #show the users picture
+                st.image(img)                           #show the users picture
                 x=1
             except:
                 st.error("The model could not analyse your image please try with another one!")
