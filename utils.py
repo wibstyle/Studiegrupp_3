@@ -9,18 +9,41 @@ from PIL import Image
 
 
 def sentiment_analysis(response: str)-> str:
+    """Sends a request to the Sentiment model. 
+
+    Args:
+        response (str): A string to be analysed.
+
+    Returns:
+        str: Returns an analysed value(positive or negative) and a score of certainty. 
+    """
     p = requests.post(url="http://127.0.0.1:8000/sentiment_analysis/",json={"context": response})
     sentiment_label = p.json()["sentiment_label"]
     score = p.json()["score"]
     return sentiment_label, score
 
 def question_answering(response1: str, response2: str)-> str:
+    """Sends a request to the QA-model.
+
+    Args:
+        response1 (str): Contains the text to be investigated.
+        response2 (str): Contains the question to be answered.
+
+    Returns:
+        str: Returns the answer to the question and a score of certainty.
+    """
     p= requests.post(url= "http://127.0.0.1:8000/qa/",json= {"context" : response1, "question" : response2})
     answer= p.json()["answer"]
     score= p.json()["score"]
     return answer, score   
 
 def start_model(response: str):
+    """This funtions starts the requested model. 
+    Also updates sessionState variable to keep trackof which model is running.
+
+    Args:
+        response (str): The model to be started.
+    """
     with st.spinner(f"Please wait while loading the **{response.replace('_',' ').capitalize()}** model."):
         time.sleep(1)
         requests.post(url="http://127.0.0.1:8000/start/",json={"name":response})
@@ -28,33 +51,39 @@ def start_model(response: str):
 
 
     
-def sql_img_output(): 
+def sql_img_output():
+    """Collects all columns from table image_classifier.
+    If table doesnt exist - it's created. Function prints dataframe thru streamlit command.
+    
+    """
     db = sqlite3.connect("databas.db")
     cur = db.cursor()
     cur.execute(""" CREATE TABLE IF NOT EXISTS image_classifier
-                    (input_time integer,image_name text, label_1 text, score_1 real, label_2 text, score_2 real, label_3 text, score_3 real)""")
+                    (   input_time integer,
+                        image_name text, 
+                        label_1 text, 
+                        score_1 real, 
+                        label_2 text, 
+                        score_2 real, 
+                        label_3 text, 
+                        score_3 real)""")
     df = pd.read_sql_query("SELECT * FROM image_classifier", db)
     st.dataframe(df)
 
-def sql_input(text_input, sentiment_output, score_output, validation): #göra modellen öppen för alla modellerna och inte enbart sentiment_analysis
-    db = sqlite3.connect('databas.db')
-    cur = db.cursor()
-    now = datetime.now()
-    data = (now, text_input, sentiment_output, score_output, validation)
-    cur.execute(" CREATE TABLE IF NOT EXISTS sentiment_analysis(input_time, input text, sentiment_respons text, score interger, validation text)")
-    cur.execute(" INSERT INTO sentiment_analysis VALUES (?,?,?,?,?)",data)
-    db.commit()
-
-def sql_output(): 
+def sql_output():
+    """ This function collects data from all columns and returns all rows from table(sentiment_analysis).
+        This table is connected to the Sentiment-model.
+    """
     db = sqlite3.connect("databas.db")
     cur = db.cursor()
     cur.execute(" CREATE TABLE IF NOT EXISTS sentiment_analysis(input_time, input text, sentiment_respons text, score interger, validation text)")    
     df = pd.read_sql_query("SELECT * FROM sentiment_analysis", db)
     st.dataframe(df)
 
-
-
 def sql_output_qa():
+    """ This function collects data from all columns and returns all rows from table(question_answer).
+        This table is connected to the QA-model.
+    """
     db = sqlite3.connect("databas.db")
     cur = db.cursor()
     cur.execute(" CREATE TABLE IF NOT EXISTS question_answer (input_time, context text, question text, answer text, score interger)")   
@@ -62,6 +91,10 @@ def sql_output_qa():
     st.dataframe(df)       
 
 def labels_changer():
+    """ The image classifier are analysing an image against three cathegories(labels).
+        This fuctions collects values from three text inputs and update the labels via the API connected 
+        to the image classifier.
+    """
     st.sidebar.write("")
     st.sidebar.write("")
     st.sidebar.write("Here you can change the labels for the image classifier.default is cat,dog and banana")
@@ -79,14 +112,6 @@ def labels_changer():
     else:
         st.sidebar.error("All labels must have a unique value")
 
-
-def sql_output_text_generated():
-    db = sqlite3.connect("databas.db")
-    cur = db.cursor()
-    cur.execute(" CREATE TABLE IF NOT EXISTS text_generated(input_time, context text, answer text)")   
-    df = pd.read_sql_query("SELECT * FROM text_generated", db)
-    st.dataframe(df)
-
 def image_classifier(files):
         response = requests.post(url="http://127.0.0.1:8000/classify_image/",files=files)
         result = (response.json())
@@ -101,6 +126,14 @@ def sql_input_qa(context_input, question_input, answer_output, score_output):
     cur.execute(" INSERT INTO question_answer VALUES (?,?,?,?,?)",data)
     db.commit()
 
+def sql_input(text_input, sentiment_output, score_output, validation): #göra modellen öppen för alla modellerna och inte enbart sentiment_analysis
+    db = sqlite3.connect('databas.db')
+    cur = db.cursor()
+    now = datetime.now()
+    data = (now, text_input, sentiment_output, score_output, validation)
+    cur.execute(" CREATE TABLE IF NOT EXISTS sentiment_analysis(input_time, input text, sentiment_respons text, score interger, validation text)")
+    cur.execute(" INSERT INTO sentiment_analysis VALUES (?,?,?,?,?)",data)
+    db.commit()
 
 #----------------------TO BE DELETED -----------------------------
 def text_generator(response):
@@ -118,3 +151,10 @@ def sql_input_text_generated(context_input, answer_output):
     cur.execute(" Create TABLE IF NOT EXISTS text_generated(input_time, context text, answer text)")
     cur.execute(" INSERT INTO text_generated VALUES (?,?,?)",data)
     db.commit()
+
+def sql_output_text_generated():
+    db = sqlite3.connect("databas.db")
+    cur = db.cursor()
+    cur.execute(" CREATE TABLE IF NOT EXISTS text_generated(input_time, context text, answer text)")   
+    df = pd.read_sql_query("SELECT * FROM text_generated", db)
+    st.dataframe(df)
