@@ -31,7 +31,7 @@ def start_model(response: str):
 def sql_img_output(): 
     db = sqlite3.connect("databas.db")
     cur = db.cursor()
-    cur.execute(""" Create TABLE IF NOT EXISTS image_classifier
+    cur.execute(""" CREATE TABLE IF NOT EXISTS image_classifier
                     (input_time integer,image_name text, label_1 text, score_1 real, label_2 text, score_2 real, label_3 text, score_3 real)""")
     df = pd.read_sql_query("SELECT * FROM image_classifier", db)
     st.dataframe(df)
@@ -41,7 +41,7 @@ def sql_input(text_input, sentiment_output, score_output, validation): #göra mo
     cur = db.cursor()
     now = datetime.now()
     data = (now, text_input, sentiment_output, score_output, validation)
-    cur.execute(" Create TABLE IF NOT EXISTS sentiment_analysis(input_time, input text, sentiment_respons text, score interger, validation text)")
+    cur.execute(" CREATE TABLE IF NOT EXISTS sentiment_analysis(input_time, input text, sentiment_respons text, score interger, validation text)")
     cur.execute(" INSERT INTO sentiment_analysis VALUES (?,?,?,?,?)",data)
     db.commit()
 
