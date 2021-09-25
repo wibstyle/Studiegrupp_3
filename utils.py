@@ -48,7 +48,7 @@ def sql_input(text_input, sentiment_output, score_output, validation): #göra mo
 def sql_output(): 
     db = sqlite3.connect("databas.db")
     cur = db.cursor()
-    cur.execute(" Create TABLE IF NOT EXISTS sentiment_analysis(input_time, input text, sentiment_respons text, score interger, validation text)")    
+    cur.execute(" CREATE TABLE IF NOT EXISTS sentiment_analysis(input_time, input text, sentiment_respons text, score interger, validation text)")    
     df = pd.read_sql_query("SELECT * FROM sentiment_analysis", db)
     st.dataframe(df)
 
@@ -57,7 +57,7 @@ def sql_output():
 def sql_output_qa():
     db = sqlite3.connect("databas.db")
     cur = db.cursor()
-    cur.execute(" Create TABLE IF NOT EXISTS question_answer (input_time, context text, question text, answer text, score interger)")   
+    cur.execute(" CREATE TABLE IF NOT EXISTS question_answer (input_time, context text, question text, answer text, score interger)")   
     df = pd.read_sql_query("SELECT * FROM question_answer", db)
     st.dataframe(df)       
 
@@ -83,7 +83,7 @@ def labels_changer():
 def sql_output_text_generated():
     db = sqlite3.connect("databas.db")
     cur = db.cursor()
-    cur.execute(" Create TABLE IF NOT EXISTS text_generated(input_time, context text, answer text)")   
+    cur.execute(" CREATE TABLE IF NOT EXISTS text_generated(input_time, context text, answer text)")   
     df = pd.read_sql_query("SELECT * FROM text_generated", db)
     st.dataframe(df)
 
@@ -97,7 +97,7 @@ def sql_input_qa(context_input, question_input, answer_output, score_output):
     cur = db.cursor()
     now = datetime.now()
     data = (now,context_input, question_input, answer_output, score_output )
-    cur.execute(" Create TABLE IF NOT EXISTS question_answer (input_time, context text, question text, answer text, score interger)")
+    cur.execute(" CREATE TABLE IF NOT EXISTS question_answer (input_time, context text, question text, answer text, score interger)")
     cur.execute(" INSERT INTO question_answer VALUES (?,?,?,?,?)",data)
     db.commit()
 
