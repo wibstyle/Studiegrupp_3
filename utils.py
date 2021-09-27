@@ -117,7 +117,7 @@ def image_classifier(files):
         result = (response.json())
         return result
         
-def sql_input_qa(context_input, question_input, answer_output, score_output):
+def sql_input_qa(context_input:str, question_input:str, answer_output:str, score_output: float):
     db = sqlite3.connect('databas.db')
     cur = db.cursor()
     now = datetime.now()
@@ -135,26 +135,3 @@ def sql_input(text_input, sentiment_output, score_output, validation): #göra mo
     cur.execute(" INSERT INTO sentiment_analysis VALUES (?,?,?,?,?)",data)
     db.commit()
 
-#----------------------TO BE DELETED -----------------------------
-def text_generator(response):
-    p = requests.post(url= "http://127.0.0.1:8000/text_generation/",json= {"context" : response})
-    response =p.json()
-    generated_text = response['generated_text']
-    answer = generated_text[:100]
-    return answer
-
-def sql_input_text_generated(context_input, answer_output):
-    db = sqlite3.connect('databas.db')
-    cur = db.cursor()
-    now = datetime.now()
-    data = (now, context_input, answer_output )
-    cur.execute(" Create TABLE IF NOT EXISTS text_generated(input_time, context text, answer text)")
-    cur.execute(" INSERT INTO text_generated VALUES (?,?,?)",data)
-    db.commit()
-
-def sql_output_text_generated():
-    db = sqlite3.connect("databas.db")
-    cur = db.cursor()
-    cur.execute(" CREATE TABLE IF NOT EXISTS text_generated(input_time, context text, answer text)")   
-    df = pd.read_sql_query("SELECT * FROM text_generated", db)
-    st.dataframe(df)
