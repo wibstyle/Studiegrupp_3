@@ -9,30 +9,6 @@ from utils import *
 
 def main():
 
-    #-----------------GLOBALS??------------------
-    def file_namer(img_name): #changing streamlite upload filename blablabal to only filename
-        img_name = file_upload
-        img_name = str(file_upload)
-        img_name_start = img_name.find("name=")+6
-        img_name_end = img_name.find("type")-3
-        file_name = img_name[img_name_start:img_name_end]
-        return file_name
-
-    def sql_image_input(img_name,result):
-        file_name = file_namer(img_name)
-        now = datetime.now()
-        dict_keys = [*result.keys()]
-        dict_values = [*result.values()]
-        data = (now, file_name, dict_keys[0], dict_values[0],dict_keys[1], dict_values[1],dict_keys[2], dict_values[2])
-        db = sqlite3.connect('databas.db')
-        cur = db.cursor()
-        cur.execute(""" Create TABLE IF NOT EXISTS image_classifier
-                    (input_time integer,image_name text, label_1 text, score_1 real, label_2 text, score_2 real, label_3 text, score_3 real)""")
-        cur.execute(" INSERT INTO image_classifier VALUES (?,?,?,?,?,?,?,?)",data)
-        db.commit()
-
-    #----------------------------------
-
     #---------------
     if "model_running" not in st.session_state:
             st.session_state['model_running']="not_activated"
@@ -42,7 +18,6 @@ def main():
     option_b = "text_generator"
     option_a = "sentiment_analysis"
     option_d = "image_classifier"
-    response = ""
 
     st.sidebar.header("Analyzing app")
     st.text("")
@@ -97,11 +72,11 @@ def main():
             validation = st.selectbox("",["Positive","Negative"])
             
             if st.button('Press to save data'):
-                sql_input(text_input, sentiment_output, score_output, validation.upper())
+                sentimental_analysis_sql_input(text_input, sentiment_output, score_output, validation.upper())
             st.text("")
             st.text("")
             if st.button('Press to show data'):
-                sql_output()
+                sentimental_analysis_sql_output()
             pass
     elif model_choice=="image_classifier":
         st.write("This model takes your input image and compare it to three labels and gives a score how much the model think your image looks like the label")
@@ -109,7 +84,7 @@ def main():
     
         file_upload = st.file_uploader("Upload a file", type=["jpeg","jpg","png"])
         
-        change_labels = labels_changer()
+        labels_changer()
         
         if file_upload is not None:
             img = Image.open(file_upload)
@@ -119,18 +94,17 @@ def main():
                 result = image_classifier(files)
                 st.image(img)                           #show the users picture
                 x=1
-            except:
+            except ValueError:
                 st.error("The model could not analyse your image please try with another one!")
                 x=0 
             if x == 1:
-                result = image_classifier(files)
                 img_name = file_upload    
                 for k, v in result.items():
                     result[k] = float(v)
                 for key,value in result.items():
                     st.write(f"Label: {key} = {value:.6f}")
                 if st.button('Press to save data'):
-                    send_to_sql = sql_image_input(img_name,result)
+                    sql_image_input(img_name,result)
                 if st.button('Press to show data'):
                     sql_img_output()
             elif x==0:

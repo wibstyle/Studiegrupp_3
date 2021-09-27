@@ -6,7 +6,41 @@ from datetime import datetime
 import time
 from PIL import Image
 
+def file_namer(img_name)->str:
+    """Extracts the filename that was uploaded
 
+    Args:
+        img_name (Streamlit Upload file information): Name retrived from using Streamlit upload function
+
+    Returns:
+        file_name (str): Returns the filename and nothing else
+    """
+    image_name = str(img_name)
+    img_name_start = image_name.find("name=")+6
+    img_name_end = image_name.find("type")-3
+    file_name = image_name[img_name_start:img_name_end]
+    return file_name
+
+def sql_image_input(img_name,result):
+    """Save the the data from the Image_classifier model to a SQLite databas, creates database and tables if needed.
+
+    Args:
+        img_name (Streamlit Upload file information): [Name retrived from using Streamlit upload function]
+        result   (dict) : dict that is sent back from the model Image_classifier
+    Returns:
+        [none]: [Only input and save nothing is]
+    """
+    file_name = file_namer(img_name)
+    now = datetime.now()
+    dict_keys = [*result.keys()]
+    dict_values = [*result.values()]
+    data = (now, file_name, dict_keys[0], dict_values[0],dict_keys[1], dict_values[1],dict_keys[2], dict_values[2])
+    db = sqlite3.connect('databas.db')
+    cur = db.cursor()
+    cur.execute(""" Create TABLE IF NOT EXISTS image_classifier
+                    (input_time integer,image_name text, label_1 text, score_1 real, label_2 text, score_2 real, label_3 text, score_3 real)""")
+    cur.execute(" INSERT INTO image_classifier VALUES (?,?,?,?,?,?,?,?)",data)
+    db.commit()
 
 def sentiment_analysis(response: str)-> str:
     """Sends a request to the Sentiment model. 
@@ -70,7 +104,7 @@ def sql_img_output():
     df = pd.read_sql_query("SELECT * FROM image_classifier", db)
     st.dataframe(df)
 
-def sql_output():
+def sentimental_analysis_sql_output():
     """ This function collects data from all columns and returns all rows from table(sentiment_analysis).
         This table is connected to the Sentiment-model.
     """
@@ -113,11 +147,27 @@ def labels_changer():
         st.sidebar.error("All labels must have a unique value")
 
 def image_classifier(files):
-        response = requests.post(url="http://127.0.0.1:8000/classify_image/",files=files)
-        result = (response.json())
-        return result
+    """Sends a request to the Image_classifier model. 
+
+    Args:
+        response (array): the input image from the user, in binary code
+
+    Returns:
+        result (dict): Returns three analysed values based on how much the picture looks like the model. 
+    """
+    response = requests.post(url="http://127.0.0.1:8000/classify_image/",files=files)
+    result = (response.json())
+    return result
         
 def sql_input_qa(context_input:str, question_input:str, answer_output:str, score_output: float):
+    """Save the the data from the QA model to a SQLite databas, creates database and tables if needed.
+
+    Args:
+        context_input (str): The frase from with we want to the test model against. 
+        question_input (str): The question related to the frase in context_input
+        answer_output (str): The output answer from the model
+        score_output (float): The score from the model
+    """
     db = sqlite3.connect('databas.db')
     cur = db.cursor()
     now = datetime.now()
@@ -126,7 +176,15 @@ def sql_input_qa(context_input:str, question_input:str, answer_output:str, score
     cur.execute(" INSERT INTO question_answer VALUES (?,?,?,?,?)",data)
     db.commit()
 
-def sql_input(text_input, sentiment_output, score_output, validation): #göra modellen öppen för alla modellerna och inte enbart sentiment_analysis
+def sentimental_analysis_sql_input(text_input, sentiment_output, score_output, validation): #göra modellen öppen för alla modellerna och inte enbart sentiment_analysis
+    """Save the the data from the sentiment analysis model to a SQLite databas, creates database and tables if needed.
+
+    Args:
+        text_input ([str]): the input data from the user that is analysed  
+        sentiment_output ([type]): the respons from the model
+        score_output ([type]): the respons score from the model
+        validation ([type]): the user is able to give input if the sentiment analysis is what they though it would be
+    """
     db = sqlite3.connect('databas.db')
     cur = db.cursor()
     now = datetime.now()
