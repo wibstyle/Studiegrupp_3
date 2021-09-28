@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 from PIL import Image
 
-def file_namer(img_name)->str:
+def file_namer(img_name: str)->str:
     """Extracts the filename that was uploaded
 
     Args:
@@ -21,7 +21,7 @@ def file_namer(img_name)->str:
     file_name = image_name[img_name_start:img_name_end]
     return file_name
 
-def sql_image_input(img_name,result):
+def sql_image_input(img_name: str,result: str):
     """Save the the data from the Image_classifier model to a SQLite databas, creates database and tables if needed.
 
     Args:
@@ -124,6 +124,21 @@ def sql_output_qa():
     df = pd.read_sql_query("SELECT * FROM question_answer", db)
     st.dataframe(df)       
 
+def refresh_category():
+    """Setting state varaiable to 1. (Kind of silly but necessary to be able to work with on_change event for widget)
+    """
+    st.session_state['cat']=1
+
+def init_session_state_image_classifier():
+    """ This method initialize two session state variables.
+        cat:                keeps track of any changes been made in categories. Only call API when its necessary
+        hide_upload_panel:  if user put empty boxes in categories -> dont show upload widget
+    """ 
+    if "cat" not in st.session_state:
+        st.session_state['cat']=0                   # 0 = zero changes made in categories
+    if "hide_upload_panel" not in st.session_state:
+        st.session_state['hide_upload_panel']=0     # 0 = show upload panel, 1 = hide upload panel
+
 def labels_changer():
     """ The image classifier are analysing an image against three cathegories(labels).
         This fuctions collects values from three text inputs and update the labels via the API connected 
@@ -134,17 +149,24 @@ def labels_changer():
     st.sidebar.write("Here you can change the labels for the image classifier.default is cat,dog and banana")
     st.sidebar.write("Default value is: _cat,dog and banana_")
     labels = st.sidebar.columns(3)
-    first_label = labels[0].text_input("1st label",value="cat",key=1)
-    second_label = labels[1].text_input("2nd label",value="dog",key=2)
-    third_label = labels[2].text_input("3rd label",value="banana",key=3)
+    first_label = labels[0].text_input("1st label",value="cat",key=1, on_change= refresh_category)
+    second_label = labels[1].text_input("2nd label",value="dog",key=2, on_change= refresh_category)
+    third_label = labels[2].text_input("3rd label",value="banana",key=3, on_change= refresh_category)
     change_labels = {"class_1": first_label,
         "class_2": second_label,
         "class_3": third_label}
     flag = len(change_labels) != len(set(change_labels.values()))
-    if flag == False and change_labels["class_1"] != "" and change_labels["class_2"] != "" and change_labels["class_3"] != "": 
-        requests.put(url="http://127.0.0.1:8000/change_classes/",json=change_labels)
-    else:
-        st.sidebar.error("All labels must have a unique value")
+    if st.session_state['cat']==1:                                      # check if any category been modified
+        if flag == False and change_labels["class_1"] != "" and change_labels["class_2"] != "" and change_labels["class_3"] != "": 
+            requests.put(url="http://127.0.0.1:8000/change_classes/",json=change_labels)
+            st.session_state['cat']=0
+            st.session_state['hide_upload_panel']=0                     # everything is good -> show upload panel
+            
+        else:
+            st.sidebar.error("All labels must have a unique value")
+            st.session_state['hide_upload_panel']=1                     # something is wrong with categories -> hide upload panel
+            
+        
 
 def image_classifier(files):
     """Sends a request to the Image_classifier model. 
