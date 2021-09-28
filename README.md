@@ -1,58 +1,40 @@
-### WELCOME  to the streamlit app: Here you interact with three different models and get different response based on your chosen model.
-Preparation before running the app:
-To run the app on your computer you need to have a terminal ready with the following installed 
-(python, conda, pandas and pip)in the base enviornment.
-It is advisable to create two new enviornments for the purpose of effectively running the app.
-The details are given below.
-### First time API integration for running the app.
-(Note: These steps need to be performed just once.)
+### WELCOME to the streamlit app: Here you interact with three different models and get different response based on your chosen model.
 
-#### 1. Create a new conda environment and activate it
-Use the commands below:
+Preparation before running the app:
+To run the app on your computer you need to start with having the models running on one of your terminal.
+
+Start by creating a new folder and cloning down the link below in the folder.
+
+https://github.com/NordAxon/ec-ml-models
+
+Follow the instructions in the README file and get your terminal ready before you follow the other steps for running the app.
+
+### In a separate terminal install streamlit by following the steps below:
+
+Create a new enviornment to run the app. Follow the commands below:
 
 conda create --name ENV_NAME python=3.9
 
 conda activate ENV_NAME
 
-#### 2. Install requirements
-
-Go to the root folder and install requirements from it.
+Go to the folder with present repo and install requirements.
 
 Use command: pip install -r requirements.txt
 
-#### 3. Installation of streamlit:
-Create a new enviornment to run the app. Follow the same commands i.e.
+The preprations for running the streamlit app are done. 
 
-conda create --name ENV2_NAME python=3.9
-
-conda activate ENV2_NAME
-
-Install streamlit:
-
-Use command: pip install streamlit
-
-The preprations for running the app are done.
+The above steps are required just once.
 
 ### Steps for running the app.
 
-Note: Every time you want to run the app you need to start the API endpoints by following the steps below.
+Note: Your API's should be running in a separate terminal everytime you want to run the app.
 
-Start the application from the root folder and activate your newly created enviornment for API
-
-When the enviornment is activated, type in the command:
-
-python src/main.py
-
-This will print to the terminal when the application is up.
-
-Leave this terminal running while you follow the other steps.
-
-In another terminal activate the enviornment with the streamlit installed.
+Activate the enviornment with the streamlit installed.
 
 Go to the main folder having the app file.
 
 From here run the command: 
 
-streamlit run streamlit_app.py
+streamlit run main_streamlit.py
 
 A new window will open in your browser with the app. # Explore and enjoy the app #
