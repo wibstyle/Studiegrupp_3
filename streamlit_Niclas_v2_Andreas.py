@@ -31,34 +31,29 @@ def main():
     st.text("")
     st.markdown(f"### {model_choice.replace('_',' ').capitalize()}")
 
-
+#---------------------------------------------
     if model_choice=="question_answering":
         form = st.form(key ="my_form")
         context_input = form.text_input("Write something here."," ")
         question_input = form.text_input("Write a question."," ")
         submit_button=form.form_submit_button(label ="Press when done")
-        answer_output, score_output =question_answering(context_input, question_input)
         if submit_button:
-            st.success(f"Answer to your question is : {answer_output} with a surety of {score_output:.4f} ")
-            st.text("")
-            sql_input_qa(context_input, question_input, answer_output, score_output)
+            if len(context_input)>2 and len(question_input)>2:
+                answer_output, score_output =question_answering(context_input, question_input)
+                st.success(f"Answer to your question is : {answer_output} with a surety of {score_output:.4f} ")
+                st.text("")
+                sql_input_qa(context_input, question_input, answer_output, score_output)
+            else:
+                st.error("Both fields must have a value.")        
         st.text("")
         if st.button('Press to show data'):
             sql_output_qa()
-                
+
+#---------------------------------------------                
     elif model_choice =="text_generator":
 
         st.write("This model is not developed in this project.")
-        # context_input = st.text_input("Write something to start with....","")
-        # if st.button("Tryck"):
-        #     answer_output = text_generator(context_input)
-        #     st.success(f"Genartated text is: {answer_output} ")
-        # if st.button("Save data"):
-        #     sql_input_text_generated(context_input, answer_output,)
-        # st.text("")
-        # if st.button('Press to show data'):
-        #     sql_output_text_generated()
-
+#---------------------------------------------
     elif model_choice=="sentiment_analysis":
         text_input = st.text_input("Write a sentence.","")
         sentiment_output, score_output = sentiment_analysis(text_input)
@@ -78,37 +73,41 @@ def main():
             if st.button('Press to show data'):
                 sentimental_analysis_sql_output()
             pass
+
+#---------------------------------------------
     elif model_choice=="image_classifier":
+        init_session_state_image_classifier()                       # initialize cat and hide_panel (session state variables)
+        
         st.write("This model takes your input image and compare it to three labels and gives a score how much the model think your image looks like the label")
         st.write("_You can use the default labels or choose three of your own in the meny._")
-    
-        file_upload = st.file_uploader("Upload a file", type=["jpeg","jpg","png"])
-        
         labels_changer()
         
-        if file_upload is not None:
-            img = Image.open(file_upload)
-            files = {'file': file_upload.getvalue()}    #the picture as binary
-            x = 0
-            try:
-                result = image_classifier(files)
-                st.image(img)                           #show the users picture
-                x=1
-            except ValueError:
-                st.error("The model could not analyse your image please try with another one!")
-                x=0 
-            if x == 1:
-                img_name = file_upload    
-                for k, v in result.items():
-                    result[k] = float(v)
-                for key,value in result.items():
-                    st.write(f"Label: {key} = {value:.6f}")
-                if st.button('Press to save data'):
-                    sql_image_input(img_name,result)
-                if st.button('Press to show data'):
-                    sql_img_output()
-            elif x==0:
-                pass
+        if st.session_state['hide_upload_panel']==0:                # if somethin is wrong with categories -> hide panel
+            file_upload = st.file_uploader("Upload a file", type=["jpeg","jpg","png"])
+        
+            if file_upload is not None: #and st.session_state['show_error']==1:
+                img = Image.open(file_upload)
+                files = {'file': file_upload.getvalue()}            #the picture as binary
+                x = 0
+                try:
+                    result = image_classifier(files)
+                    st.image(img)                                   #show the users picture
+                    x=1
+                except ValueError:
+                    st.error("The model could not analyse your image please try with another one!")
+                    x=0 
+                if x == 1:
+                    img_name = file_upload    
+                    for k, v in result.items():
+                        result[k] = float(v)
+                    for key,value in result.items():
+                        st.write(f"Label: {key} = {value:.6f}")
+                    if st.button('Press to save data'):
+                        sql_image_input(img_name,result)
+                    if st.button('Press to show data'):
+                        sql_img_output()
+                elif x==0:
+                    pass
     else:
         pass
 
